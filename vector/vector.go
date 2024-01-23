@@ -20,6 +20,12 @@ func (v *Vec3) Add(other Vec3) {
 	v.Z += other.Z
 }
 
+func (v *Vec3) Multiply(other Vec3) {
+	v.X *= other.X
+	v.Y *= other.Y
+	v.Z *= other.Z
+}
+
 // func (v Vec3) String() string {
 // 	return fmt.Sprintf("Vec3: X: %v Y:%v Z:%v\n", v.X, v.Y, v.Z)
 // }

@@ -17,4 +17,6 @@ func main() {
 	a.Add(vector.Vec3{X: 4, Y: 5, Z: 6})
 	fmt.Println(a)
 	// fmt.Println(b)
+	a.Multiply(vector.Vec3{X: 7, Y: 8, Z: 9})
+	fmt.Println(a)
 }
