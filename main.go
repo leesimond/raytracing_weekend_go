@@ -5,12 +5,29 @@ import (
 	"fmt"
 	"os"
 	"raytracing_weekend_go/colour"
+	"raytracing_weekend_go/ray"
+	"raytracing_weekend_go/vector"
 )
 
-var imageWidth int = 256
-var imageHeight int = 256
+func rayColour(r *ray.Ray) colour.Colour {
+	return colour.Colour{}
+}
 
 func main() {
+	// Image
+	aspectRatio := 16.0 / 9.0
+	imageWidth := 400
+	imageHeight := int(float64(imageWidth) / aspectRatio)
+	if imageHeight < 1 {
+		imageHeight = 1
+	}
+
+	// Camera
+	focalLength := 1.0
+	viewportHeight := 2.0
+	viewportWidth := viewportHeight * (float64(imageWidth) / float64(imageHeight))
+	cameraCentre := vector.Point3{}
+
 	w := bufio.NewWriter(os.Stderr)
 	fmt.Printf("P3\n%d %d\n255\n", imageWidth, imageHeight)
 	for j := 0; j < imageHeight; j++ {
