@@ -9,7 +9,20 @@ import (
 	"raytracing_weekend_go/vector"
 )
 
+func hitSphere(centre *vector.Point3, radius float64, r *ray.Ray) bool {
+	oc := r.Origin.Subtract(*centre)
+	a := r.Direction.Dot(r.Direction)
+	b := 2.0 * oc.Dot(r.Direction)
+	c := oc.Dot(oc) - radius*radius
+	discriminant := b*b - 4*a*c
+	return discriminant >= 0
+}
+
 func rayColour(r *ray.Ray) colour.Colour {
+	if hitSphere(&vector.Point3{Z: -1}, 0.5, r) {
+		return colour.Colour{X: 1}
+	}
+
 	unitDirection := r.Direction.UnitVector()
 	a := 0.5 * (unitDirection.Y + 1)
 	colour1 := colour.Colour{X: 1, Y: 1, Z: 1}
@@ -60,6 +73,7 @@ func main() {
 			pixelDeltaVJ := pixelDeltaV.MultiplyScalar(float64(j))
 			pixelCentre := pixel00Loc.Add(pixelDeltaUI.Add(pixelDeltaVJ))
 			rayDirection := pixelCentre.Subtract(cameraCentre)
+			// Revisit New()
 			r := ray.New(cameraCentre, rayDirection)
 			pixelColour := rayColour(&r)
 			colour.WriteColour(os.Stdout, pixelColour)
