@@ -3,24 +3,36 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"raytracing_weekend_go/colour"
 	"raytracing_weekend_go/ray"
 	"raytracing_weekend_go/vector"
 )
 
-func hitSphere(centre *vector.Point3, radius float64, r *ray.Ray) bool {
+func hitSphere(centre *vector.Point3, radius float64, r *ray.Ray) float64 {
 	oc := r.Origin.Subtract(*centre)
 	a := r.Direction.Dot(r.Direction)
 	b := 2.0 * oc.Dot(r.Direction)
 	c := oc.Dot(oc) - radius*radius
 	discriminant := b*b - 4*a*c
-	return discriminant >= 0
+
+	if discriminant < 0 {
+		return -1
+	} else {
+		return (-b - math.Sqrt(discriminant)) / (2.0 * a)
+	}
 }
 
 func rayColour(r *ray.Ray) colour.Colour {
-	if hitSphere(&vector.Point3{Z: -1}, 0.5, r) {
-		return colour.Colour{X: 1}
+	t := hitSphere(&vector.Point3{Z: -1}, 0.5, r)
+	if t > 0 {
+		n := r.At(t)
+		n = n.Subtract(vector.Vec3{Z: -1})
+		n = n.UnitVector()
+		rayColour := colour.Colour{X: n.X + 1, Y: n.Y + 1, Z: n.Z + 1}
+		rayColour = rayColour.MultiplyScalar(0.5)
+		return rayColour
 	}
 
 	unitDirection := r.Direction.UnitVector()
