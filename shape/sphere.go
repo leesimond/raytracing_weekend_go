@@ -12,7 +12,7 @@ type Sphere struct {
 	radius float64
 }
 
-func (s Sphere) Hit(r ray.Ray, rayTmin float64, rayTmax float64, rec *hittable.Hit) bool {
+func (s *Sphere) Hit(r *ray.Ray, rayTmin float64, rayTmax float64, rec *hittable.HitRecord) bool {
 	oc := r.Origin.Subtract(s.centre)
 	a := r.Direction.LengthSquared()
 	halfB := oc.Dot(r.Direction)
@@ -35,8 +35,9 @@ func (s Sphere) Hit(r ray.Ray, rayTmin float64, rayTmax float64, rec *hittable.H
 
 	rec.T = root
 	rec.P = r.At(rec.T)
-	rec.Normal = rec.P.Subtract(s.centre)
-	rec.Normal = rec.Normal.DivideScalar(s.radius)
+	outwardNormal := rec.P.Subtract(s.centre)
+	outwardNormal.DivideScalarAssign(s.radius)
+	rec.SetFaceNormal(r, outwardNormal)
 
 	return true
 }
