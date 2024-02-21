@@ -8,15 +8,15 @@ import (
 )
 
 type Sphere struct {
-	centre vector.Point3
-	radius float64
+	Centre vector.Point3
+	Radius float64
 }
 
 func (s *Sphere) Hit(r *ray.Ray, rayTmin float64, rayTmax float64, rec *hittable.HitRecord) bool {
-	oc := r.Origin.Subtract(s.centre)
+	oc := r.Origin.Subtract(s.Centre)
 	a := r.Direction.LengthSquared()
 	halfB := oc.Dot(r.Direction)
-	c := oc.LengthSquared() - s.radius*s.radius
+	c := oc.LengthSquared() - s.Radius*s.Radius
 
 	discriminant := halfB*halfB - a*c
 	if discriminant < 0 {
@@ -35,8 +35,8 @@ func (s *Sphere) Hit(r *ray.Ray, rayTmin float64, rayTmax float64, rec *hittable
 
 	rec.T = root
 	rec.P = r.At(rec.T)
-	outwardNormal := rec.P.Subtract(s.centre)
-	outwardNormal.DivideScalarAssign(s.radius)
+	outwardNormal := rec.P.Subtract(s.Centre)
+	outwardNormal.DivideScalarAssign(s.Radius)
 	rec.SetFaceNormal(r, outwardNormal)
 
 	return true

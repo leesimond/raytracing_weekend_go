@@ -6,33 +6,21 @@ import (
 	"math"
 	"os"
 	"raytracing_weekend_go/colour"
+	"raytracing_weekend_go/hittable"
 	"raytracing_weekend_go/ray"
+	"raytracing_weekend_go/shape"
 	"raytracing_weekend_go/vector"
 )
 
-func hitSphere(centre *vector.Point3, radius float64, r *ray.Ray) float64 {
-	oc := r.Origin.Subtract(*centre)
-	a := r.Direction.LengthSquared()
-	halfB := oc.Dot(r.Direction)
-	c := oc.LengthSquared() - radius*radius
-	discriminant := halfB*halfB - a*c
-
-	if discriminant < 0 {
-		return -1
-	} else {
-		return (-halfB - math.Sqrt(discriminant)) / a
-	}
+func degreesToRadians(degrees float64) float64 {
+	return degrees * math.Pi / 180
 }
 
-func rayColour(r *ray.Ray) colour.Colour {
-	t := hitSphere(&vector.Point3{Z: -1}, 0.5, r)
-	if t > 0 {
-		n := r.At(t)
-		n = n.Subtract(vector.Vec3{Z: -1})
-		n = n.UnitVector()
-		rayColour := colour.Colour{X: n.X + 1, Y: n.Y + 1, Z: n.Z + 1}
-		rayColour = rayColour.MultiplyScalar(0.5)
-		return rayColour
+func rayColour(r *ray.Ray, world hittable.Hittable) colour.Colour {
+	var rec hittable.HitRecord
+	if world.Hit(r, 0, math.Inf(1), &rec) {
+		normalColour := rec.Normal.Add(colour.Colour{X: 1, Y: 1, Z: 1})
+		return normalColour.MultiplyScalar(0.5)
 	}
 
 	unitDirection := r.Direction.UnitVector()
@@ -52,6 +40,12 @@ func main() {
 	if imageHeight < 1 {
 		imageHeight = 1
 	}
+
+	// World
+	var world hittable.HittableList
+
+	world.Add(&shape.Sphere{Centre: vector.Point3{Z: -1}, Radius: 0.5})
+	world.Add(&shape.Sphere{Centre: vector.Point3{Y: -100.5, Z: -1}, Radius: 100})
 
 	// Camera
 	focalLength := 1.0
@@ -87,7 +81,7 @@ func main() {
 			rayDirection := pixelCentre.Subtract(cameraCentre)
 			// Revisit New()
 			r := ray.New(cameraCentre, rayDirection)
-			pixelColour := rayColour(&r)
+			pixelColour := rayColour(&r, &world)
 			colour.WriteColour(os.Stdout, pixelColour)
 		}
 	}
