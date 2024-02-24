@@ -7,6 +7,7 @@ import (
 	"os"
 	"raytracing_weekend_go/colour"
 	"raytracing_weekend_go/hittable"
+	"raytracing_weekend_go/interval"
 	"raytracing_weekend_go/ray"
 	"raytracing_weekend_go/shape"
 	"raytracing_weekend_go/vector"
@@ -18,7 +19,7 @@ func degreesToRadians(degrees float64) float64 {
 
 func rayColour(r *ray.Ray, world hittable.Hittable) colour.Colour {
 	var rec hittable.HitRecord
-	if world.Hit(r, 0, math.Inf(1), &rec) {
+	if world.Hit(r, &interval.Interval{Min: 0, Max: math.Inf(1)}, &rec) {
 		normalColour := rec.Normal.Add(colour.Colour{X: 1, Y: 1, Z: 1})
 		return normalColour.MultiplyScalar(0.5)
 	}

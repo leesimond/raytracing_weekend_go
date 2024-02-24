@@ -1,6 +1,7 @@
 package hittable
 
 import (
+	"raytracing_weekend_go/interval"
 	"raytracing_weekend_go/ray"
 	"raytracing_weekend_go/vector"
 )
@@ -26,7 +27,7 @@ func (h *HitRecord) SetFaceNormal(r *ray.Ray, outwardNormal vector.Vec3) {
 }
 
 type Hittable interface {
-	Hit(r *ray.Ray, rayTmin float64, rayTmax float64, rec *HitRecord) bool
+	Hit(r *ray.Ray, rayT *interval.Interval, rec *HitRecord) bool
 }
 
 type HittableList struct {
@@ -41,13 +42,13 @@ func (h *HittableList) Add(object Hittable) {
 	h.objects = append(h.objects, object)
 }
 
-func (h *HittableList) Hit(r *ray.Ray, rayTmin float64, rayTmax float64, rec *HitRecord) bool {
+func (h *HittableList) Hit(r *ray.Ray, rayT *interval.Interval, rec *HitRecord) bool {
 	var tempRecord HitRecord
 	hitAnything := false
-	closestSoFar := rayTmax
+	closestSoFar := rayT.Max
 
 	for _, object := range h.objects {
-		if object.Hit(r, rayTmin, closestSoFar, &tempRecord) {
+		if object.Hit(r, &interval.Interval{Min: rayT.Min, Max: closestSoFar}, &tempRecord) {
 			hitAnything = true
 			closestSoFar = tempRecord.T
 			*rec = tempRecord

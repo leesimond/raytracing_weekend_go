@@ -3,6 +3,7 @@ package shape
 import (
 	"math"
 	"raytracing_weekend_go/hittable"
+	"raytracing_weekend_go/interval"
 	"raytracing_weekend_go/ray"
 	"raytracing_weekend_go/vector"
 )
@@ -12,7 +13,7 @@ type Sphere struct {
 	Radius float64
 }
 
-func (s *Sphere) Hit(r *ray.Ray, rayTmin float64, rayTmax float64, rec *hittable.HitRecord) bool {
+func (s *Sphere) Hit(r *ray.Ray, rayT *interval.Interval, rec *hittable.HitRecord) bool {
 	oc := r.Origin.Subtract(s.Centre)
 	a := r.Direction.LengthSquared()
 	halfB := oc.Dot(r.Direction)
@@ -26,9 +27,9 @@ func (s *Sphere) Hit(r *ray.Ray, rayTmin float64, rayTmax float64, rec *hittable
 
 	// Find the nearest root that lies in the acceptable range.
 	root := (-halfB - sqrtD) / a
-	if root <= rayTmin || rayTmax <= root {
+	if !rayT.Surrounds(root) {
 		root = (-halfB + sqrtD) / a
-		if root <= rayTmin || rayTmax <= root {
+		if !rayT.Surrounds(root) {
 			return false
 		}
 	}
