@@ -7,6 +7,7 @@ type Ray struct {
 	Direction vector.Vec3
 }
 
+// Revisit value return instead of pointer
 func New(origin vector.Point3, direction vector.Vec3) Ray {
 	return Ray{Origin: origin, Direction: direction}
 }

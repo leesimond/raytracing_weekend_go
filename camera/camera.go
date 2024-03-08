@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"math"
+	"math/rand"
 	"os"
 	"raytracing_weekend_go/colour"
 	"raytracing_weekend_go/hittable"
@@ -13,17 +14,18 @@ import (
 )
 
 type Camera struct {
-	AspectRatio float64
-	ImageWidth  int
-	imageHeight int
-	centre      vector.Point3
-	pixel00Loc  vector.Point3
-	pixelDeltaU vector.Vec3
-	pixelDeltaV vector.Vec3
+	AspectRatio     float64
+	ImageWidth      int
+	imageHeight     int
+	SamplesPerPixel int
+	centre          vector.Point3
+	pixel00Loc      vector.Point3
+	pixelDeltaU     vector.Vec3
+	pixelDeltaV     vector.Vec3
 }
 
 func New() Camera {
-	return Camera{AspectRatio: 1, ImageWidth: 100}
+	return Camera{AspectRatio: 1, ImageWidth: 100, SamplesPerPixel: 10}
 }
 
 func (c *Camera) Render(world hittable.Hittable) {
@@ -36,14 +38,12 @@ func (c *Camera) Render(world hittable.Hittable) {
 		w.WriteString(progress)
 		w.Flush()
 		for i := 0; i < c.ImageWidth; i++ {
-			pixelDeltaUI := c.pixelDeltaU.MultiplyScalar(float64(i))
-			pixelDeltaVJ := c.pixelDeltaV.MultiplyScalar(float64(j))
-			pixelCentre := c.pixel00Loc.Add(pixelDeltaUI.Add(pixelDeltaVJ))
-			rayDirection := pixelCentre.Subtract(c.centre)
-			// Revisit New()
-			r := ray.New(c.centre, rayDirection)
-			pixelColour := rayColour(&r, world)
-			colour.WriteColour(os.Stdout, pixelColour)
+			pixelColour := colour.Colour{}
+			for sample := 0; sample < c.SamplesPerPixel; sample++ {
+				r := c.getRay(i, j)
+				pixelColour.AddAssign(rayColour(&r, world))
+			}
+			colour.WriteColour(os.Stdout, pixelColour, c.SamplesPerPixel)
 		}
 	}
 	w.Write([]byte("\rDone.                 \n"))
@@ -78,6 +78,26 @@ func (c *Camera) initialise() {
 	c.pixel00Loc = c.pixelDeltaU.Add(c.pixelDeltaV)
 	c.pixel00Loc = c.pixel00Loc.MultiplyScalar(0.5)
 	c.pixel00Loc = c.pixel00Loc.Add(viewportUpperLeft)
+}
+
+func (c *Camera) getRay(i int, j int) ray.Ray {
+	pixelDeltaUI := c.pixelDeltaU.MultiplyScalar(float64(i))
+	pixelDeltaVJ := c.pixelDeltaV.MultiplyScalar(float64(j))
+	pixelCentre := c.pixel00Loc.Add(pixelDeltaUI.Add(pixelDeltaVJ))
+	pixelSample := pixelCentre.Add(c.pixelSampleSquare())
+
+	rayOrigin := c.centre
+	rayDirection := pixelSample.Subtract(rayOrigin)
+	return ray.Ray{Origin: rayOrigin, Direction: rayDirection}
+}
+
+func (c *Camera) pixelSampleSquare() vector.Vec3 {
+	// Returns a random point in teh square surrounding a pixel at the origin
+	px := -0.5 + rand.Float64()
+	py := -0.5 + rand.Float64()
+	pixelDelaURandom := c.pixelDeltaU.MultiplyScalar(px)
+	pixelDelaVRandom := c.pixelDeltaV.MultiplyScalar(py)
+	return pixelDelaURandom.Add(pixelDelaVRandom)
 }
 
 func rayColour(r *ray.Ray, world hittable.Hittable) colour.Colour {
