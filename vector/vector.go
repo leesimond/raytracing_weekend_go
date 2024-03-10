@@ -3,6 +3,8 @@ package vector
 import (
 	"fmt"
 	"math"
+	"math/rand"
+	"raytracing_weekend_go/utils"
 )
 
 type Vec3 struct {
@@ -37,6 +39,14 @@ func (v *Vec3) Length() float64 {
 
 func (v *Vec3) LengthSquared() float64 {
 	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
+}
+
+func Random() Vec3 {
+	return Vec3{X: rand.Float64(), Y: rand.Float64(), Z: rand.Float64()}
+}
+
+func RandomMinMax(min float64, max float64) Vec3 {
+	return Vec3{X: utils.Random(min, max), Y: utils.Random(min, max), Z: utils.Random(min, max)}
 }
 
 // Useful for geometric clarity in the code
@@ -74,6 +84,28 @@ func (v *Vec3) Cross(other Vec3) Vec3 {
 	return Vec3{X: v.Y*other.Z - v.Z*other.Y, Y: v.Z*other.X - v.X*other.Z, Z: v.X*other.Y - v.Y*other.X}
 }
 
-func (v *Vec3) UnitVector() Vec3 {
+func UnitVector(v Vec3) Vec3 {
 	return v.DivideScalar(v.Length())
+}
+
+func RandomInUnitSphere() Vec3 {
+	for {
+		p := RandomMinMax(-1, 1)
+		if p.LengthSquared() < 1 {
+			return p
+		}
+	}
+}
+
+func RandomUnitVector() Vec3 {
+	return UnitVector(RandomInUnitSphere())
+}
+
+func RandomOnHemisphere(normal *Vec3) Vec3 {
+	onUnitSphere := RandomUnitVector()
+	if onUnitSphere.Dot(*normal) > 0.0 {
+		return onUnitSphere
+	} else {
+		return onUnitSphere.Negate()
+	}
 }

@@ -18,6 +18,7 @@ type Camera struct {
 	ImageWidth      int
 	imageHeight     int
 	SamplesPerPixel int
+	MaxDepth        int
 	centre          vector.Point3
 	pixel00Loc      vector.Point3
 	pixelDeltaU     vector.Vec3
@@ -25,7 +26,7 @@ type Camera struct {
 }
 
 func New() Camera {
-	return Camera{AspectRatio: 1, ImageWidth: 100, SamplesPerPixel: 10}
+	return Camera{AspectRatio: 1, ImageWidth: 100, SamplesPerPixel: 10, MaxDepth: 10}
 }
 
 func (c *Camera) Render(world hittable.Hittable) {
@@ -41,7 +42,7 @@ func (c *Camera) Render(world hittable.Hittable) {
 			pixelColour := colour.Colour{}
 			for sample := 0; sample < c.SamplesPerPixel; sample++ {
 				r := c.getRay(i, j)
-				pixelColour.AddAssign(rayColour(&r, world))
+				pixelColour.AddAssign(rayColour(&r, c.MaxDepth, world))
 			}
 			colour.WriteColour(os.Stdout, pixelColour, c.SamplesPerPixel)
 		}
@@ -100,14 +101,21 @@ func (c *Camera) pixelSampleSquare() vector.Vec3 {
 	return pixelDelaURandom.Add(pixelDelaVRandom)
 }
 
-func rayColour(r *ray.Ray, world hittable.Hittable) colour.Colour {
+func rayColour(r *ray.Ray, depth int, world hittable.Hittable) colour.Colour {
 	var rec hittable.HitRecord
-	if world.Hit(r, &interval.Interval{Min: 0, Max: math.Inf(1)}, &rec) {
-		normalColour := rec.Normal.Add(colour.Colour{X: 1, Y: 1, Z: 1})
-		return normalColour.MultiplyScalar(0.5)
+
+	// If we've exceeded the ray bounce limit, no more light is gathered
+	if depth <= 0 {
+		return colour.Colour{}
 	}
 
-	unitDirection := r.Direction.UnitVector()
+	if world.Hit(r, &interval.Interval{Min: 0, Max: math.Inf(1)}, &rec) {
+		direction := vector.RandomOnHemisphere(&rec.Normal)
+		rayColour := rayColour(&ray.Ray{Origin: rec.P, Direction: direction}, depth-1, world)
+		return rayColour.MultiplyScalar(0.5)
+	}
+
+	unitDirection := vector.UnitVector(r.Direction)
 	a := 0.5 * (unitDirection.Y + 1)
 	colour1 := colour.Colour{X: 1, Y: 1, Z: 1}
 	colour1 = colour1.MultiplyScalar(1 - a)
