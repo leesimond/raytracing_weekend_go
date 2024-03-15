@@ -110,7 +110,7 @@ func rayColour(r *ray.Ray, depth int, world hittable.Hittable) colour.Colour {
 	}
 
 	if world.Hit(r, &interval.Interval{Min: 0.001, Max: math.Inf(1)}, &rec) {
-		direction := vector.RandomOnHemisphere(&rec.Normal)
+		direction := rec.Normal.Add(vector.RandomUnitVector())
 		rayColour := rayColour(&ray.Ray{Origin: rec.P, Direction: direction}, depth-1, world)
 		return rayColour.MultiplyScalar(0.5)
 	}
