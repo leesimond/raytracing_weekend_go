@@ -41,6 +41,11 @@ func (v *Vec3) LengthSquared() float64 {
 	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
 }
 
+func (v *Vec3) NearZero() bool {
+	s := 1e-8
+	return math.Abs(v.X) < s && math.Abs(v.Y) < s && math.Abs(v.Z) < s
+}
+
 func Random() Vec3 {
 	return Vec3{X: rand.Float64(), Y: rand.Float64(), Z: rand.Float64()}
 }
@@ -108,4 +113,11 @@ func RandomOnHemisphere(normal *Vec3) Vec3 {
 	} else {
 		return onUnitSphere.Negate()
 	}
+}
+
+func Reflect(v Vec3, n Vec3) Vec3 {
+	a := v.Dot(n)
+	b := n.MultiplyScalar(a)
+	b = b.MultiplyScalar(2)
+	return v.Subtract(b)
 }

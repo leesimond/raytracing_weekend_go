@@ -4,13 +4,15 @@ import (
 	"math"
 	"raytracing_weekend_go/hittable"
 	"raytracing_weekend_go/interval"
+	"raytracing_weekend_go/material"
 	"raytracing_weekend_go/ray"
 	"raytracing_weekend_go/vector"
 )
 
 type Sphere struct {
-	Centre vector.Point3
-	Radius float64
+	Centre   vector.Point3
+	Radius   float64
+	Material *material.Material
 }
 
 func (s *Sphere) Hit(r *ray.Ray, rayT *interval.Interval, rec *hittable.HitRecord) bool {
