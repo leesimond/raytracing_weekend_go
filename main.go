@@ -2,6 +2,7 @@ package main
 
 import (
 	"raytracing_weekend_go/camera"
+	"raytracing_weekend_go/colour"
 	"raytracing_weekend_go/hittable"
 	"raytracing_weekend_go/shape"
 	"raytracing_weekend_go/vector"
@@ -10,8 +11,15 @@ import (
 func main() {
 	var world hittable.HittableList
 
-	world.Add(&shape.Sphere{Centre: vector.Point3{Z: -1}, Radius: 0.5})
-	world.Add(&shape.Sphere{Centre: vector.Point3{Y: -100.5, Z: -1}, Radius: 100})
+	materialGround := hittable.Lambertian{Albedo: colour.Colour{X: 0.8, Y: 0.8}}
+	materialCentre := hittable.Lambertian{Albedo: colour.Colour{X: 0.7, Y: 0.3, Z: 0.3}}
+	materialLeft := hittable.Metal{Albedo: colour.Colour{X: 0.8, Y: 0.8, Z: 0.8}}
+	materialRight := hittable.Metal{Albedo: colour.Colour{X: 0.8, Y: 0.6, Z: 0.2}}
+
+	world.Add(&shape.Sphere{Centre: vector.Point3{Y: -100.5, Z: -1}, Radius: 100, Material: &materialGround})
+	world.Add(&shape.Sphere{Centre: vector.Point3{Z: -1}, Radius: 0.5, Material: &materialCentre})
+	world.Add(&shape.Sphere{Centre: vector.Point3{X: -1.0, Z: -1}, Radius: 0.5, Material: &materialLeft})
+	world.Add(&shape.Sphere{Centre: vector.Point3{X: 1.0, Z: -1}, Radius: 0.5, Material: &materialRight})
 
 	cam := camera.New()
 	cam.AspectRatio = 16.0 / 9.0

@@ -10,6 +10,7 @@ type HitRecord struct {
 	P         vector.Point3
 	Normal    vector.Vec3
 	T         float64
+	Material  Material
 	frontFace bool
 }
 

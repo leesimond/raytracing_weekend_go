@@ -1,14 +1,13 @@
-package material
+package hittable
 
 import (
 	"raytracing_weekend_go/colour"
-	"raytracing_weekend_go/hittable"
 	"raytracing_weekend_go/ray"
 	"raytracing_weekend_go/vector"
 )
 
 type Material interface {
-	Scatter(rIn *ray.Ray, rec *hittable.HitRecord, attenuation *colour.Colour, scattered *ray.Ray) bool
+	Scatter(rIn *ray.Ray, rec *HitRecord, attenuation *colour.Colour, scattered *ray.Ray) bool
 }
 
 type Lambertian struct {
@@ -19,7 +18,7 @@ type Metal struct {
 	Albedo colour.Colour
 }
 
-func (l *Lambertian) Scatter(rIn *ray.Ray, rec *hittable.HitRecord, attenuation *colour.Colour, scattered *ray.Ray) bool {
+func (l *Lambertian) Scatter(rIn *ray.Ray, rec *HitRecord, attenuation *colour.Colour, scattered *ray.Ray) bool {
 	scatterDirection := rec.Normal.Add(vector.RandomUnitVector())
 
 	// Catch degenerate scatter direction
@@ -30,7 +29,7 @@ func (l *Lambertian) Scatter(rIn *ray.Ray, rec *hittable.HitRecord, attenuation 
 	attenuation = &l.Albedo
 	return true
 }
-func (m *Metal) Scatter(rIn *ray.Ray, rec *hittable.HitRecord, attenuation *colour.Colour, scattered *ray.Ray) bool {
+func (m *Metal) Scatter(rIn *ray.Ray, rec *HitRecord, attenuation *colour.Colour, scattered *ray.Ray) bool {
 	reflected := vector.Reflect(vector.UnitVector(rIn.Direction), rec.Normal)
 	scattered = &ray.Ray{Origin: rec.P, Direction: reflected}
 	attenuation = &m.Albedo
