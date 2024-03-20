@@ -110,11 +110,9 @@ func rayColour(r *ray.Ray, depth int, world hittable.Hittable) colour.Colour {
 	}
 
 	if world.Hit(r, &interval.Interval{Min: 0.001, Max: math.Inf(1)}, &rec) {
-		var scattered ray.Ray
-		var attenuation colour.Colour
 		isScattered, attenuation, scattered := rec.Material.Scatter(r, &rec)
 		if isScattered {
-			return attenuation.Multiply(rayColour(&scattered, depth-1, world))
+			return attenuation.Multiply(rayColour(scattered, depth-1, world))
 		}
 		return colour.Colour{}
 	}
