@@ -25,8 +25,8 @@ type Camera struct {
 	pixelDeltaV     vector.Vec3
 }
 
-func New() Camera {
-	return Camera{AspectRatio: 1, ImageWidth: 100, SamplesPerPixel: 10, MaxDepth: 10}
+func New() *Camera {
+	return &Camera{AspectRatio: 1, ImageWidth: 100, SamplesPerPixel: 10, MaxDepth: 10}
 }
 
 func (c *Camera) Render(world hittable.Hittable) {
