@@ -16,10 +16,11 @@ func main() {
 	materialLeft := &hittable.Dielectric{IndexRefraction: 1.5}
 	materialRight := hittable.NewMetal(colour.Colour{X: 0.8, Y: 0.6, Z: 0.2}, 0.0)
 
-	world.Add(&shape.Sphere{Centre: vector.Point3{Y: -100.5, Z: -1}, Radius: 100, Material: materialGround})
-	world.Add(&shape.Sphere{Centre: vector.Point3{Z: -1}, Radius: 0.5, Material: materialCentre})
-	world.Add(&shape.Sphere{Centre: vector.Point3{X: -1.0, Z: -1}, Radius: 0.5, Material: materialLeft})
-	world.Add(&shape.Sphere{Centre: vector.Point3{X: 1.0, Z: -1}, Radius: 0.5, Material: materialRight})
+	world.Add(&shape.Sphere{Centre: vector.Point3{Y: -100.5, Z: -1.0}, Radius: 100, Material: materialGround})
+	world.Add(&shape.Sphere{Centre: vector.Point3{Z: -1.0}, Radius: 0.5, Material: materialCentre})
+	world.Add(&shape.Sphere{Centre: vector.Point3{X: -1.0, Z: -1.0}, Radius: 0.5, Material: materialLeft})
+	world.Add(&shape.Sphere{Centre: vector.Point3{X: -1.0, Z: -1.0}, Radius: -0.4, Material: materialLeft})
+	world.Add(&shape.Sphere{Centre: vector.Point3{X: 1.0, Z: -1.0}, Radius: 0.5, Material: materialRight})
 
 	cam := camera.New()
 	cam.AspectRatio = 16.0 / 9.0
