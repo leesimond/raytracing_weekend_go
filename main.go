@@ -11,13 +11,13 @@ import (
 func main() {
 	var world hittable.HittableList
 
-	materialGround := hittable.Lambertian{Albedo: colour.Colour{X: 0.8, Y: 0.8}}
-	materialCentre := hittable.Lambertian{Albedo: colour.Colour{X: 0.7, Y: 0.3, Z: 0.3}}
-	materialLeft := hittable.NewMetal(colour.Colour{X: 0.8, Y: 0.8, Z: 0.8}, 0.3)
-	materialRight := hittable.NewMetal(colour.Colour{X: 0.8, Y: 0.6, Z: 0.2}, 1.0)
+	materialGround := &hittable.Lambertian{Albedo: colour.Colour{X: 0.8, Y: 0.8}}
+	materialCentre := &hittable.Lambertian{Albedo: colour.Colour{X: 0.1, Y: 0.2, Z: 0.5}}
+	materialLeft := &hittable.Dielectric{IndexRefraction: 1.5}
+	materialRight := hittable.NewMetal(colour.Colour{X: 0.8, Y: 0.6, Z: 0.2}, 0.0)
 
-	world.Add(&shape.Sphere{Centre: vector.Point3{Y: -100.5, Z: -1}, Radius: 100, Material: &materialGround})
-	world.Add(&shape.Sphere{Centre: vector.Point3{Z: -1}, Radius: 0.5, Material: &materialCentre})
+	world.Add(&shape.Sphere{Centre: vector.Point3{Y: -100.5, Z: -1}, Radius: 100, Material: materialGround})
+	world.Add(&shape.Sphere{Centre: vector.Point3{Z: -1}, Radius: 0.5, Material: materialCentre})
 	world.Add(&shape.Sphere{Centre: vector.Point3{X: -1.0, Z: -1}, Radius: 0.5, Material: materialLeft})
 	world.Add(&shape.Sphere{Centre: vector.Point3{X: 1.0, Z: -1}, Radius: 0.5, Material: materialRight})
 

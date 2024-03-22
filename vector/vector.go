@@ -121,3 +121,12 @@ func Reflect(v Vec3, n Vec3) Vec3 {
 	b = b.MultiplyScalar(2)
 	return v.Subtract(b)
 }
+
+func Refract(uv *Vec3, n *Vec3, etaiOverEtat float64) Vec3 {
+	cosTheta := math.Min(n.Dot(uv.Negate()), 1.0)
+	rOutPerpendicular := uv.Add(n.MultiplyScalar(cosTheta))
+	rOutPerpendicular.MultiplyScalarAssign(etaiOverEtat)
+	rOutParallelSqrt := -math.Sqrt(math.Abs(1.0 - rOutPerpendicular.LengthSquared()))
+	rOutParallel := n.MultiplyScalar(rOutParallelSqrt)
+	return rOutPerpendicular.Add(rOutParallel)
+}
