@@ -28,5 +28,10 @@ func main() {
 	cam.SamplesPerPixel = 100
 	cam.MaxDepth = 50
 
+	cam.VFov = 20
+	cam.LookFrom = vector.Point3{X: -2, Y: 2, Z: 1}
+	cam.LookAt = vector.Point3{Z: -1}
+	cam.VUp = vector.Vec3{Y: 1}
+
 	cam.Render(&world)
 }

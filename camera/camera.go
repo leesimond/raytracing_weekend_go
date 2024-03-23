@@ -10,6 +10,7 @@ import (
 	"raytracing_weekend_go/hittable"
 	"raytracing_weekend_go/interval"
 	"raytracing_weekend_go/ray"
+	"raytracing_weekend_go/utils"
 	"raytracing_weekend_go/vector"
 )
 
@@ -19,14 +20,27 @@ type Camera struct {
 	imageHeight     int
 	SamplesPerPixel int
 	MaxDepth        int
+	VFov            float64
+	LookFrom        vector.Point3
+	LookAt          vector.Point3
+	VUp             vector.Vec3
 	centre          vector.Point3
 	pixel00Loc      vector.Point3
 	pixelDeltaU     vector.Vec3
 	pixelDeltaV     vector.Vec3
+	u, v, w         vector.Vec3
 }
 
 func New() *Camera {
-	return &Camera{AspectRatio: 1, ImageWidth: 100, SamplesPerPixel: 10, MaxDepth: 10}
+	return &Camera{
+		AspectRatio:     1,
+		ImageWidth:      100,
+		SamplesPerPixel: 10,
+		MaxDepth:        10,
+		VFov:            90,
+		LookFrom:        vector.Point3{Z: -1},
+		LookAt:          vector.Point3{},
+		VUp:             vector.Vec3{Y: 1}}
 }
 
 func (c *Camera) Render(world hittable.Hittable) {
@@ -57,23 +71,32 @@ func (c *Camera) initialise() {
 		c.imageHeight = 1
 	}
 
-	c.centre = vector.Point3{}
+	c.centre = c.LookFrom
 
 	// Determine viewport dimensions
-	focalLength := 1.0
-	viewportHeight := 2.0
+	focal := c.LookFrom.Subtract(c.LookAt)
+	focalLength := focal.Length()
+	theta := utils.DegreesToRadians(c.VFov)
+	h := math.Tan(theta / 2)
+	viewportHeight := 2 * h * focalLength
 	viewportWidth := viewportHeight * (float64(c.ImageWidth) / float64(c.imageHeight))
 
+	// Calculate the u,v,w unit basis vectors for the camera coordinate frame
+	w := vector.UnitVector(c.LookFrom.Subtract(c.LookAt))
+	u := vector.UnitVector(c.VUp.Cross(w))
+	v := w.Cross(u)
+
 	// Calculate the vector across the horizontal and down the vertical viewport edges
-	viewportU := vector.Vec3{X: viewportWidth}
-	viewportV := vector.Vec3{Y: -viewportHeight}
+	viewportU := u.MultiplyScalar(viewportWidth)
+	viewportV := v.Negate()
+	viewportV = viewportV.MultiplyScalar(viewportHeight)
 
 	// Calculate the horizontal and vertical delta vector from pixel to pixel
 	c.pixelDeltaU = viewportU.DivideScalar(float64(c.ImageWidth))
 	c.pixelDeltaV = viewportV.DivideScalar(float64(c.imageHeight))
 
 	// Calculate the location of the upper left pixel
-	viewportUpperLeft := c.centre.Subtract(vector.Vec3{Z: focalLength})
+	viewportUpperLeft := c.centre.Subtract(w.MultiplyScalar(focalLength))
 	viewportUpperLeft = viewportUpperLeft.Subtract(viewportU.DivideScalar(2))
 	viewportUpperLeft = viewportUpperLeft.Subtract(viewportV.DivideScalar(2))
 	c.pixel00Loc = c.pixelDeltaU.Add(c.pixelDeltaV)
