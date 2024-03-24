@@ -33,5 +33,8 @@ func main() {
 	cam.LookAt = vector.Point3{Z: -1}
 	cam.VUp = vector.Vec3{Y: 1}
 
+	cam.DefocusAngle = 10.0
+	cam.FocusDistance = 3.4
+
 	cam.Render(&world)
 }

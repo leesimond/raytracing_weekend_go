@@ -24,11 +24,15 @@ type Camera struct {
 	LookFrom        vector.Point3
 	LookAt          vector.Point3
 	VUp             vector.Vec3
+	DefocusAngle    float64
+	FocusDistance   float64
 	centre          vector.Point3
 	pixel00Loc      vector.Point3
 	pixelDeltaU     vector.Vec3
 	pixelDeltaV     vector.Vec3
 	u, v, w         vector.Vec3
+	defocusDiscU    vector.Vec3
+	defocusDiscV    vector.Vec3
 }
 
 func New() *Camera {
@@ -40,7 +44,10 @@ func New() *Camera {
 		VFov:            90,
 		LookFrom:        vector.Point3{Z: -1},
 		LookAt:          vector.Point3{},
-		VUp:             vector.Vec3{Y: 1}}
+		VUp:             vector.Vec3{Y: 1},
+		DefocusAngle:    0,
+		FocusDistance:   10,
+	}
 }
 
 func (c *Camera) Render(world hittable.Hittable) {
@@ -74,11 +81,9 @@ func (c *Camera) initialise() {
 	c.centre = c.LookFrom
 
 	// Determine viewport dimensions
-	focal := c.LookFrom.Subtract(c.LookAt)
-	focalLength := focal.Length()
 	theta := utils.DegreesToRadians(c.VFov)
 	h := math.Tan(theta / 2)
-	viewportHeight := 2 * h * focalLength
+	viewportHeight := 2 * h * c.FocusDistance
 	viewportWidth := viewportHeight * (float64(c.ImageWidth) / float64(c.imageHeight))
 
 	// Calculate the u,v,w unit basis vectors for the camera coordinate frame
@@ -96,21 +101,33 @@ func (c *Camera) initialise() {
 	c.pixelDeltaV = viewportV.DivideScalar(float64(c.imageHeight))
 
 	// Calculate the location of the upper left pixel
-	viewportUpperLeft := c.centre.Subtract(w.MultiplyScalar(focalLength))
+	viewportUpperLeft := c.centre.Subtract(w.MultiplyScalar(c.FocusDistance))
 	viewportUpperLeft = viewportUpperLeft.Subtract(viewportU.DivideScalar(2))
 	viewportUpperLeft = viewportUpperLeft.Subtract(viewportV.DivideScalar(2))
 	c.pixel00Loc = c.pixelDeltaU.Add(c.pixelDeltaV)
 	c.pixel00Loc = c.pixel00Loc.MultiplyScalar(0.5)
 	c.pixel00Loc = c.pixel00Loc.Add(viewportUpperLeft)
+
+	// Calculate the camera defocus disc basis vectors.
+	defocusRadius := c.FocusDistance * math.Tan(utils.DegreesToRadians(c.DefocusAngle/2))
+	c.defocusDiscU = u.MultiplyScalar(defocusRadius)
+	c.defocusDiscV = v.MultiplyScalar(defocusRadius)
 }
 
 func (c *Camera) getRay(i int, j int) ray.Ray {
+	// Get a randomly-sampled camera ray for the pixel at location i,j, originating from
+	// the camera defocus disc.
 	pixelDeltaUI := c.pixelDeltaU.MultiplyScalar(float64(i))
 	pixelDeltaVJ := c.pixelDeltaV.MultiplyScalar(float64(j))
 	pixelCentre := c.pixel00Loc.Add(pixelDeltaUI.Add(pixelDeltaVJ))
 	pixelSample := pixelCentre.Add(c.pixelSampleSquare())
 
-	rayOrigin := c.centre
+	var rayOrigin vector.Vec3
+	if c.DefocusAngle <= 0 {
+		rayOrigin = c.centre
+	} else {
+		rayOrigin = c.defocusDiscSample()
+	}
 	rayDirection := pixelSample.Subtract(rayOrigin)
 	return ray.Ray{Origin: rayOrigin, Direction: rayDirection}
 }
@@ -122,6 +139,14 @@ func (c *Camera) pixelSampleSquare() vector.Vec3 {
 	pixelDelaURandom := c.pixelDeltaU.MultiplyScalar(px)
 	pixelDelaVRandom := c.pixelDeltaV.MultiplyScalar(py)
 	return pixelDelaURandom.Add(pixelDelaVRandom)
+}
+
+func (c *Camera) defocusDiscSample() vector.Point3 {
+	// Returns a random point in the camera defocus disc
+	p := vector.RandomInUnitDisc()
+	defocusDiscSample := c.centre.Add(c.defocusDiscU.MultiplyScalar(p.X))
+	defocusDiscSample = defocusDiscSample.Add(c.defocusDiscV.MultiplyScalar(p.Y))
+	return defocusDiscSample
 }
 
 func rayColour(r *ray.Ray, depth int, world hittable.Hittable) colour.Colour {

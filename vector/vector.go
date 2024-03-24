@@ -93,6 +93,15 @@ func UnitVector(v Vec3) Vec3 {
 	return v.DivideScalar(v.Length())
 }
 
+func RandomInUnitDisc() Vec3 {
+	for {
+		p := Vec3{X: utils.Random(-1, 1), Y: utils.Random(-1, 1)}
+		if p.LengthSquared() < 1 {
+			return p
+		}
+	}
+}
+
 func RandomInUnitSphere() Vec3 {
 	for {
 		p := RandomMinMax(-1, 1)
